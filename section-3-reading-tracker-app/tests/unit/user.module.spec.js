@@ -1,9 +1,24 @@
 import store from "@/store";
+import { resetState } from "./helpers";
 import axios from "axios";
 import mockData from "./mockData";
 import { types as mutations } from "@/store/user/mutations";
+import { types as actions } from "@/store/user/actions";
+import actionImpls from "@/store/user/actions";
+import { types as listsMutations } from "@/store/lists/mutations";
+
+jest.mock("@/api.js");
+
+const NEW_USER = {
+  name: "John Doe",
+  bio: "I like books",
+  email: "test@email.com",
+  password: "123456"
+};
 
 describe("Mutations", () => {
+  beforeEach(resetState);
+
   it("Should correctly set token", () => {
     store.commit(mutations.SET_TOKEN, mockData.AUTH_RESPONSE.accessToken);
 
@@ -16,5 +31,53 @@ describe("Mutations", () => {
   it("Should correctly set current user", () => {
     store.commit(mutations.SET_CURRENT_USER, mockData.NEW_USER);
     expect(store.state.user.current).toBe(mockData.NEW_USER);
+  });
+});
+
+describe("Actions", () => {
+  beforeEach(resetState);
+
+  it("Should register new user", async () => {
+    await store.dispatch(actions.REGISTER_USER, NEW_USER);
+
+    expect(store.state.user.token).toBeTruthy();
+    expect(store.state.user.current.id).toBeDefined();
+  });
+
+  it("Should login", async () => {
+    await store.dispatch(actions.LOGIN, NEW_USER);
+
+    expect(store.state.user.token).toBeTruthy();
+    expect(store.state.user.current.id).toBeDefined();
+  });
+
+  it("Should fetch user lists", async () => {
+    const commit = jest.fn();
+
+    await actionImpls[actions.GET_USER_LISTS]({
+      commit,
+      dispatch: () => {},
+      state: {
+        current: { id: 0 }
+      }
+    });
+
+    expect(commit).toBeCalledTimes(1);
+    expect(commit).lastCalledWith(`lists/${listsMutations.SET_LISTS}`, [], {
+      root: true
+    });
+
+    await actionImpls[actions.GET_USER_LISTS]({
+      commit,
+      dispatch: () => {},
+      state: {
+        current: { id: 0 }
+      }
+    });
+
+    expect(commit).toBeCalledTimes(2);
+    expect(commit).lastCalledWith(`lists/${listsMutations.SET_LISTS}`, [], {
+      root: true
+    });
   });
 });
