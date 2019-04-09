@@ -26,7 +26,8 @@ export const TEST_LIST = {
   userId: 0,
   name: "Cool Books",
   description: "Books I think are cool",
-  bookIds: [3, 4]
+  bookIds: [],
+  books: []
 };
 
-export { books as BOOKS } from "@/../backend/books";
+export { default as BOOKS } from "@/../backend/books";
